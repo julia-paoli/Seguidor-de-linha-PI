@@ -126,8 +126,23 @@ class Motors{
             }
         }
 
-        // velocidade padrao em pwm
-        int stdSpeed = 30;
 
+        /**
+         * @brief Função para realizar o movimento do robô aplicando o pid 
+         * 
+         */
+        void moveRobot(int stdSpeed, int angularDiference){
+
+        int right, left;
+
+        // Cálculo da velocidade em cada motor
+        right = stdSpeed;
+        right += angularDiference;
+
+        left = stdSpeed;
+        left -= angularDiference;
+        // Tradução de velocidade em PWM não é igual, portanto deve ser alterado
+        this->setPWMs (left, right);
+}
 };
 

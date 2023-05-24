@@ -5,12 +5,13 @@
 
 Motors motors;
 Sensors sensores;
-int kp,ki,kd;
-PID pid(kp,ki,kd);
+PID pid;
 
 int PIDresult;
+int stdSpeed;
 bool calibrating;
 double PIDerror;
+bool started = false;
 
 void setup() {
   motors.initMotors();
@@ -29,30 +30,20 @@ void loop() {
     calibrating = false; 
   }
 
-  if(digitalRead(BUTTON)){
+  if(started){
     sensores.readCalibrated(); // le sensores levando em conta a calibracao
     PIDerror = sensores.calculatePosition(); // pegua erro em relacao a linha
     PIDresult = pid.calculate(PIDerror); // calcula o PID
-    moveRobot(PIDresult); // usa o resultado do PID para movimentar o robo
-} 
+    motors.moveRobot(stdSpeed, PIDresult)
+  } 
+  else{
+    motors.stopRobot();
+  }
+
+  if(digitalRead(BUTTON)){
+    started = !started;
+  }
 
 }
 
 
-/**
- * @brief Função para realizar o movimento do robô aplicando o pid 
- * 
- */
-void moveRobot(int angularDiference){
-
-    int right, left;
-
-    // Cálculo da velocidade em cada motor
-    right = motors.stdSpeed;
-    right += angularDiference;
-
-    left = motors.stdSpeed;
-    left -= angularDiference;
-    // Tradução de velocidade em PWM não é igual, portanto deve ser alterado
-    motors.setPWMs (left, right);
-}

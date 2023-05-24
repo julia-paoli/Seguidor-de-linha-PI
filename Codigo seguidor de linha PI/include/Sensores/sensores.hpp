@@ -115,7 +115,7 @@ class Sensors {
         float weight[casesNumber] = {4, 3.5, 3, 3, 2.5, 2, 2, 1.5, 1, 1, 0,-1,  -1,  -1.5, -2,  -2, -2.5, -3,  -3,  -3.5, -4};
 
         for (int i = 1; i <= SENSORS_NUMBER; i++) {
-            if (readingsInOrder[i - 1] <= LINE_VALUE) {
+            if (readingsInOrder[i - 1] >= LINE_VALUE) {
                 index *= 10;
                 index += i;
             }

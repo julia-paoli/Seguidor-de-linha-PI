@@ -11,9 +11,9 @@ class PID {
     private:
 
         // Atributos com os parâmetros do controlador PID
-        double _Kp; // Ganho proporcional
-        double _Ki; // Ganho integral
-        double _Kd; // Ganho derivativo
+        double _Kp = 0; // Ganho proporcional
+        double _Ki = 0; // Ganho integral
+        double _Kd = 0; // Ganho derivativo
 
         // Atributos para armazenar o resultado dos termos do algoritmo PID
         double _proportional = 0.; // Ação proporcional
@@ -25,19 +25,10 @@ class PID {
 
     public:
 
-    /**
-     * @brief Método construtor que atribui os valores passados nos atributos dos parâmetros do controle PID.
-     * 
-     * @param Kp Valor do Kp;
-     * @param Ki Valor do Ki;
-     * @param Kd Valor do Kd.
-     */
-    PID (double Kp, double Ki, double Kd){
-        // Atribui os valores passados no argumento
-       _Kp = Kp;
-       _Ki = Ki;
-       _Kd = Kd;
-    }
+    // gets das constantes
+    double getKp(){ return _kp;}
+    double getKd(){ return _kd;}
+    double getKi(){ return _ki;}
 
     /**
      * @brief Método que atualiza os parâmetros do controle PID.
