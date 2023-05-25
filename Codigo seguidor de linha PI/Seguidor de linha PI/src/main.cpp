@@ -34,7 +34,7 @@ void loop() {
     sensores.readCalibrated(); // le sensores levando em conta a calibracao
     PIDerror = sensores.calculatePosition(); // pegua erro em relacao a linha
     PIDresult = pid.calculate(PIDerror); // calcula o PID
-    motors.moveRobot(stdSpeed, PIDresult)
+    motors.moveRobot(stdSpeed, PIDresult);
   } 
   else{
     motors.stopRobot();

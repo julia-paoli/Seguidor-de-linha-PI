@@ -26,9 +26,9 @@ class PID {
     public:
 
     // gets das constantes
-    double getKp(){ return _kp;}
-    double getKd(){ return _kd;}
-    double getKi(){ return _ki;}
+    double getKp(){ return _Kp;}
+    double getKd(){ return _Kd;}
+    double getKi(){ return _Ki;}
 
     /**
      * @brief Método que atualiza os parâmetros do controle PID.
