@@ -12,8 +12,8 @@ namespace pins {
     const int LEFT_SENSOR3_PIN      = 39;
     const int LEFT_SENSOR2_PIN      = 34;
     const int LEFT_SENSOR1_PIN      = 35;
-    const int RIGHT_SENSOR1_PIN     = 33;
-    const int RIGHT_SENSOR2_PIN     = 32;
+    const int RIGHT_SENSOR1_PIN     = 32;
+    const int RIGHT_SENSOR2_PIN     = 33;
     const int RIGHT_SENSOR3_PIN     = 25;
     const int RIGHT_SENSOR4_PIN     = 26;
 
@@ -33,10 +33,10 @@ namespace pins {
    
 
     // Definição dos pinos dos drivers de motor
-    const int DRV_LEFT_IN1 = 23;
-    const int DRV_LEFT_IN2 = 22;
-    const int DRV_RIGHT_IN1 = 19;
-    const int DRV_RIGHT_IN2 = 21;
+    const int DRV_LEFT_IN1 = 19;
+    const int DRV_LEFT_IN2 = 18;
+    const int DRV_RIGHT_IN1 = 17;
+    const int DRV_RIGHT_IN2 = 16;
 
     // Canais responsáveis pelo sinal pwm
     const int channel_DRV_LEFT_IN1 = 0;
@@ -45,8 +45,8 @@ namespace pins {
     const int channel_DRV_RIGHT_IN2 = 3;
 
     // Definição dos pinos de LED
-    const int LED = 2;
-    const int BUTTON = 13;
+    const int LED = 4; //provisorio
+    const int BUTTON = 2;
 
 }  // namespace pins
 
