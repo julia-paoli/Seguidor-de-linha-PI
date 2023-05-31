@@ -31,7 +31,7 @@ const int resolution = 8;
 
 class Motors{
     private:
-        int _stdSpeed;
+        int _stdSpeed = 0;
 
     public:
 
@@ -118,13 +118,13 @@ class Motors{
             //Motor direito
             if (right > 0) {
                 // motor direito roda no sentido horario
-                ledcWrite(channel_DRV_RIGHT_IN1, right);
-                ledcWrite(channel_DRV_RIGHT_IN2, 0);
+                ledcWrite(channel_DRV_RIGHT_IN1, 0);
+                ledcWrite(channel_DRV_RIGHT_IN2, right);
 
             } else {
                 // motor direito roda no sentido anti horario
-                ledcWrite(channel_DRV_RIGHT_IN1, 0);
-                ledcWrite(channel_DRV_RIGHT_IN2, abs(right));
+                ledcWrite(channel_DRV_RIGHT_IN1, abs(right));
+                ledcWrite(channel_DRV_RIGHT_IN2, 0);
             }
         }
 
@@ -150,7 +150,8 @@ class Motors{
         void setStdSpeed(int newStdSpeed){
             _stdSpeed = newStdSpeed;
         }
+
+        int getStdSpeed(){
+            return _stdSpeed;
+        }
 };
-
-
-Motors motors;

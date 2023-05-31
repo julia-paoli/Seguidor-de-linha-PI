@@ -62,7 +62,7 @@ void Interface::ChangeCalibrating(){
     this->SerialBT.println("");
 
    if(confirmation.toInt()== 1){
-    sensores.setCalibrating(false);
+     sensores.setCalibrating(false);
    }
 }
 
@@ -128,7 +128,8 @@ void Interface::menu(){
             this->ChangePIDconstants("kd");
             break;
         }
-        this->SerialBT.println("--> Selecao invalida, tente de novo ");    
+        default:
+            this->SerialBT.println("--> Selecao invalida, tente de novo ");    
     }
       this->SerialBT.println("");
 

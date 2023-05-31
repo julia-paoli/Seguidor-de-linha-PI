@@ -50,14 +50,17 @@ class Sensors {
          * 
          */
         void calibrateSensors() {
-            readSensors();
-            // ajustando a calibração para cada sensor
-            for (int i = 0; i < SENSORS_NUMBER; i++) {
-                if (_maxCalibrated[i] < _readings[i])
-                    _maxCalibrated[i] = _readings[i];
 
-                if (_minCalibrated[i] > _readings[i])
-                    _minCalibrated[i] = _readings[i];
+            for(int startTime = millis(); (millis() - startTime)<5000;){
+                readSensors();
+                // ajustando a calibração para cada sensor
+                for (int i = 0; i < SENSORS_NUMBER; i++) {
+                    if (_maxCalibrated[i] < _readings[i])
+                        _maxCalibrated[i] = _readings[i];
+
+                    if (_minCalibrated[i] > _readings[i])
+                        _minCalibrated[i] = _readings[i];
+                }
             }
         }
 
@@ -84,8 +87,10 @@ class Sensors {
                 readings = map(_readings[i], _minCalibrated[i], _maxCalibrated[i], 0,
                             MAX_ESP);
                 readings = constrain(readings, 0, MAX_ESP);
+                Serial.print("D" + String(i+1) + ": " + String(readings) + "   ");
                 _readings[i] = readings;
             }
+            Serial.println("");
         
         }
 
@@ -115,7 +120,7 @@ class Sensors {
         int   cases[casesNumber]  = {1,   12, 123, 2,   23, 234, 3,   34, 345, 4, 45, 456, 5,  56,  567, 6,  67,  678, 7,  78,  8};
         // Pesos associados a cada combinação de sensores
         // Para mais de um sensor sendo lido, é feita a média de pesos entre os sensores
-        float weight[casesNumber] = {4, 3.5, 3, 3, 2.5, 2, 2, 1.5, 1, 1, 0,-1,  -1,  -1.5, -2,  -2, -2.5, -3,  -3,  -3.5, -4};
+        float weight[casesNumber] = {-4, -3.5, -3, -3, -2.5, -2, -2, -1.5, -1, -1, 0, 1,  1,  1.5, 2,  2, 2.5, 3, 3, 3.5, 4};
 
         for (int i = 1; i <= SENSORS_NUMBER; i++) {
             if (readingsInOrder[i - 1] >= LINE_VALUE) {
@@ -144,7 +149,7 @@ class Sensors {
         int _readings[SENSORS_NUMBER];
         int _maxCalibrated[SENSORS_NUMBER];
         int _minCalibrated[SENSORS_NUMBER];
-        bool _calibrating; // booleano que diz se estamos em calibracao ou nao
+        bool _calibrating = true; // booleano que diz se estamos em calibracao ou nao
         
         /**
          * @brief Le o valor nos sensores sem a calibracao
@@ -165,5 +170,3 @@ class Sensors {
 
     
 };
-
-Sensors sensores;

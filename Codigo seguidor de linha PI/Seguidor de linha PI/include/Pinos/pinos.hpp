@@ -51,4 +51,4 @@ namespace pins {
 }  // namespace pins
 
 const int MAX_ESP = 4095;
-const int LINE_VALUE = MAX_ESP*0.7;
+const int LINE_VALUE = MAX_ESP*0.9;
