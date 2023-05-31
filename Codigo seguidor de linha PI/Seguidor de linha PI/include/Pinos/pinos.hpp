@@ -45,7 +45,7 @@ namespace pins {
     const int channel_DRV_RIGHT_IN2 = 3;
 
     // Definição dos pinos de LED
-    const int LED = 4; //provisorio
+    //const int LED = 2; //provisorio
     const int BUTTON = 2;
 
 }  // namespace pins

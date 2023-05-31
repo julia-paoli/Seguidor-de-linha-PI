@@ -30,6 +30,8 @@ const int resolution = 8;
 
 
 class Motors{
+    private:
+        int _stdSpeed;
 
     public:
 
@@ -131,18 +133,24 @@ class Motors{
          * @brief Função para realizar o movimento do robô aplicando o pid 
          * 
          */
-        void moveRobot(int stdSpeed, int angularDiference){
+        void moveRobot(int angularDiference){
 
         int right, left;
 
         // Cálculo da velocidade em cada motor
-        right = stdSpeed;
+        right = _stdSpeed;
         right += angularDiference;
 
-        left = stdSpeed;
+        left = _stdSpeed;
         left -= angularDiference;
         // Tradução de velocidade em PWM não é igual, portanto deve ser alterado
         this->setPWMs (left, right);
-}
+        }
+
+        void setStdSpeed(int newStdSpeed){
+            _stdSpeed = newStdSpeed;
+        }
 };
 
+
+Motors motors;

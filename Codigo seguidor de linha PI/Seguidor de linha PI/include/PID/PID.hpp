@@ -72,3 +72,5 @@ class PID {
        _lastError = 0.;
     }
 };
+
+PID pid; // criando objeto
