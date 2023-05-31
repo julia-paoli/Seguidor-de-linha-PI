@@ -73,4 +73,3 @@ class PID {
     }
 };
 
-PID pid; // criando objeto

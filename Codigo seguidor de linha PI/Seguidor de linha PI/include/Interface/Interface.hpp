@@ -3,16 +3,33 @@
 #include "PID/PID.hpp"
 #include "Sensores/sensores.hpp"
 
+
+/**
+ * @brief opcoes do menu
+ * 
+ */
+enum menuOptions{
+    stdSpeed,
+    calibrating,
+    kp,
+    ki,
+    kd,
+    turnOn,
+    turnOff
+};
+
 class Interface{
     public:
         Interface();
         BluetoothSerial SerialBT;
         String read();
 
-        void menu();
-        void ChangeStdSpeed();
-        void ChangePIDconstants(String);
-        void ChangeCalibrating();
+        void menu(PID* pid, Motors* motors, Sensors* sensors, bool*);
+        void ChangeStdSpeed(Motors*);
+        void ChangePIDconstants(menuOptions, PID*);
+        void ChangeCalibrating(Sensors*);
+        void ChangeStarted(bool* started, bool flag);
+        void waitStartSignal();
     private:
 };
 
@@ -27,7 +44,7 @@ Interface::Interface() {
 /**
  * @brief  recebe, guarda e retorna dados
  * 
- * @return String  lida
+ * @return String lida
  */
 String Interface::read() {
     while (SerialBT.available() == 0);          // Aguarda a receber os dados
@@ -37,24 +54,42 @@ String Interface::read() {
 }
 
 /**
+ * @brief Espera a conexao inicial com o terminal bluetooth
+ * 
+ */
+void Interface::waitStartSignal() 
+{
+  bool hasntCmd = true;
+  do {
+      SerialBT.println("Digite '1' pra comecar: ");
+      String option = read();
+      if (option == "1"){
+        hasntCmd = false;
+      }
+      delay(1000);
+  } while (hasntCmd);
+  SerialBT.println("Iniciando...");
+}
+
+/**
  * @brief altera a stdSpeed
  * 
  */
-void Interface::ChangeStdSpeed(){
+void Interface::ChangeStdSpeed(Motors *motors){
     this->SerialBT.println("");
     this->SerialBT.println("--> Insira o novo valor para velocidade: ");
     String newStdSpeed = this->read(); // lendo o valor colocado
     this->SerialBT.println("Valor inserido foi: " + String(newStdSpeed));
     this->SerialBT.println("");
 
-    motors.setStdSpeed(newStdSpeed.toInt()); // altera valor da stdSpeed
+    motors->setStdSpeed(newStdSpeed.toInt()); // altera valor da stdSpeed
 }
 
 /**
  * @brief coloca em modo de calibracao, alterando a variavel calibrating
  * 
  */
-void Interface::ChangeCalibrating(){
+void Interface::ChangeCalibrating(Sensors* sensors){
     this->SerialBT.println("");
     this->SerialBT.println("--> Digite 1 para confirmar que deseja entrar em modo de calibracao: ");
     this->SerialBT.println("--> Caso ao contrario, aperte qualquer outra tecla: ");
@@ -62,40 +97,44 @@ void Interface::ChangeCalibrating(){
     this->SerialBT.println("");
 
    if(confirmation.toInt()== 1){
-     sensores.setCalibrating(false);
+     sensors->setCalibrating(false);
    }
 }
 
 /**
- * @brief altera uma ocnstante do PID
+ * @brief altera uma constante do PID
  * 
  * @param type string que diz se queremos mudra o kp,ki ou kd
  * 
  * 
  */
-void Interface::ChangePIDconstants(String type){
+void Interface::ChangePIDconstants(menuOptions type, PID* pid){
     this->SerialBT.println("");
     this->SerialBT.println("--> Insira o novo valor da constante: ");
     String newK = this->read(); // lendo o valor colocado
 
-    if(type == "kp"){
-        pid.updateConstants(newK.toDouble(),pid.getKi(),pid.getKd());
+    if(type == menuOptions::kp){
+        pid->updateConstants(newK.toDouble(),pid->getKi(),pid->getKd());
     }
-    else if(type == "ki"){
-        pid.updateConstants(pid.getKp(),newK.toDouble(),pid.getKd());
+    else if(type == menuOptions::ki){
+        pid->updateConstants(pid->getKp(),newK.toDouble(),pid->getKd());
     }
-    else if(type == "kd"){
-        pid.updateConstants(pid.getKp(),pid.getKi(),newK.toDouble());
+    else if(type == menuOptions::kd){
+        pid->updateConstants(pid->getKp(),pid->getKi(),newK.toDouble());
     }
     this->SerialBT.println("Valor inserido foi: " + String(newK));
     this->SerialBT.println("");
+}
+
+void Interface::ChangeStarted(bool* started, bool flag){
+       *started = flag;
 }
 
 /**
  * @brief Mostra as opcoes para o usuario e chama as funcoes adequadas para alteracao das variaveis
  * 
  */
-void Interface::menu(){
+void Interface::menu(PID* pid, Motors* motors, Sensors* sensors, bool* started){
     this->SerialBT.println("");
     this->SerialBT.println("--> Digite a opcao desejada ");
     this->SerialBT.println("");
@@ -104,29 +143,37 @@ void Interface::menu(){
     this->SerialBT.println("--> 3 Alterar o Kp do PID ");
     this->SerialBT.println("--> 4 Alterar o Ki do PID ");
     this->SerialBT.println("--> 5 Alterar o Kd do PID ");
+    this->SerialBT.println("--> 6 Iniciar robo ");
+     this->SerialBT.println("--> 7 Parar");
     String option = this->read();
 
     switch (option.toInt())
     {
-        case 1: {
-            this->ChangeStdSpeed();
+        case menuOptions::stdSpeed : {
+            this->ChangeStdSpeed(motors);
             break;
         }
-        case 2:{
-            this->ChangeStdSpeed();
+        case menuOptions::calibrating:{
+            this->ChangeCalibrating(sensors);
             break;
         }
-        case 3:{
-            this->ChangePIDconstants("kp");
+        case menuOptions::kp:{
+            this->ChangePIDconstants(menuOptions::kp,pid);
             break;
         }
-        case 4:{
-            this->ChangePIDconstants("ki");
+        case menuOptions::ki:{
+            this->ChangePIDconstants(menuOptions::kp,pid);
             break;
         }
-        case 5:{
-            this->ChangePIDconstants("kd");
+        case menuOptions::kd:{
+            this->ChangePIDconstants(menuOptions::kp,pid);
             break;
+        }
+        case menuOptions::turnOn:{
+            this->ChangeStarted(started, true);
+        }
+         case menuOptions::turnOff:{
+             this->ChangeStarted(started, false);
         }
         default:
             this->SerialBT.println("--> Selecao invalida, tente de novo ");    
@@ -134,5 +181,3 @@ void Interface::menu(){
       this->SerialBT.println("");
 
 }
-
-Interface interface;

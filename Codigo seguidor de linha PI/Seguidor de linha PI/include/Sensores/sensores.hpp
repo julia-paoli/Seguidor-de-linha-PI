@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Pinos/pinos.hpp>
+#include <Constantes/constants.hpp>
 
 using namespace pins;
 
@@ -87,7 +87,10 @@ class Sensors {
                 readings = map(_readings[i], _minCalibrated[i], _maxCalibrated[i], 0,
                             MAX_ESP);
                 readings = constrain(readings, 0, MAX_ESP);
+
+                 //prints de debugg
                 Serial.print("D" + String(i+1) + ": " + String(readings) + "   ");
+                
                 _readings[i] = readings;
             }
             Serial.println("");
