@@ -10,7 +10,7 @@
  */
 enum menuOptions{
     stdSpeed,
-    calibrating,
+    calibrate,
     kp,
     ki,
     kd,
@@ -151,7 +151,7 @@ void Interface::menuActions(PID* pid, Motors* motors, Sensors* sensors, states* 
             this->ChangeStdSpeed(motors);
             break;
         }
-        case menuOptions::calibrating:{
+        case menuOptions::calibrate:{
              this->ChangeState(state, states::calibrating);
             break;
         }
