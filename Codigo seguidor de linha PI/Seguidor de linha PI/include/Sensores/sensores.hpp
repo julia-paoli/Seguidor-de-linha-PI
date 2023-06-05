@@ -42,8 +42,8 @@ class Sensors {
             pinMode(RIGHT_SENSOR4_PIN, INPUT);
         }
 
-        void setCalibrating(bool calibrating){ _calibrating = calibrating;}
-        bool getCalibrating(){return _calibrating;}
+        //void setCalibrating(bool calibrating){ _calibrating = calibrating;}
+        //bool getCalibrating(){return _calibrating;}
 
         /**
          * @brief Calibra os sensores
@@ -152,8 +152,7 @@ class Sensors {
         int _readings[SENSORS_NUMBER];
         int _maxCalibrated[SENSORS_NUMBER];
         int _minCalibrated[SENSORS_NUMBER];
-        bool _calibrating = true; // booleano que diz se estamos em calibracao ou nao
-        
+       
         /**
          * @brief Le o valor nos sensores sem a calibracao
          * 

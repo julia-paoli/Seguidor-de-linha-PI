@@ -12,17 +12,22 @@ Sensors *sensores;
 Motors *motors; 
 PID *pid;
 Interface *interface;
+states currentState = stopped;
 
-void setup()                                {
+
+void setup(){
   
   sensores = new Sensors();
   motors = new Motors();
   pid = new PID();
   interface = new Interface();
+
+  //inicializacoes necessarias
   motors->initMotors();
   sensores->initPins();
   pinMode(BUTTON, INPUT);
   interface->waitStartSignal();
+  interface->menuPrompt(); // printa o menu de opcoes no terminal bluetooth
   //pinMode(LED, OUTPUT);
 
   pid->updateConstants(7,0,100); // dando um valor inicial
@@ -31,41 +36,51 @@ void setup()                                {
 
 
 void loop() {
+
+  //bloco para o comando bluetooth
+  if (interface->SerialBT.available()){ // verifica se recebemos algo por bluetooth
+    interface->menuActions(pid, motors,sensores,&currentState);
+    interface->menuPrompt(); // reprinta as opcoes de menu
+  }
+  
   //bloco para calibrar sensores
-  if (started && sensores->getCalibrating()){
+  if (currentState == states::calibrating){
     //digitalWrite(LED,HIGH);
 
-     //prints de debugg
-    Serial.println("CALIBRANDO  ");
+    //prints de debugg
+    //Serial.println("CALIBRANDO  ");
 
     sensores->resetCalibration();
     sensores->calibrateSensors();
     //digitalWrite(LED,LOW);
-    sensores->setCalibrating(false); 
+    currentState = states::stopped;
   }
 
-  if(started){
-
+  if(currentState = states::running){
     //prints de debugg
-    Serial.println("RODANDO  ");
-    // Serial.println(String(motors->getStdSpeed()) + "  |   " + String(pid.getKp()) + "  |   " + String(pid.getKi()) + "  |   " + String(pid.getKd()));
+    //Serial.println("RODANDO  ");
+    //Serial.println(String(motors->getStdSpeed()) + "  |   " + String(pid.getKp()) + "  |   " + String(pid.getKi()) + "  |   " + String(pid.getKd()));
    
     sensores->readCalibrated(); // le sensores levando em conta a calibracao
     PIDerror = sensores->calculatePosition(); // pegua erro em relacao a linha
     PIDresult = pid->calculate(PIDerror); // calcula o PID
-    delay(100);
     motors->moveRobot(PIDresult);
   } 
-  else{
+  else if (currentState = states::stopped){
     //prints de debugg
-    Serial.println("PARADO");
-    interface->menu(pid, motors,sensores,&started);
+    //Serial.println("PARADO");
     motors->stopRobot();
   }
 
+  // "troca" de estados
   if(digitalRead(BUTTON)){
-    delay(300);
-    started = !started;
+    //parando se nao estiver parado e se estiver parado coloca em running
+    if(currentState == states::stopped){
+      currentState = states::running;
+    }
+    else{
+      currentState = states::stopped;
+    }
   }
 
 }
