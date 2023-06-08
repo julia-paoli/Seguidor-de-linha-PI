@@ -27,7 +27,7 @@ void setup(){
   sensores->initPins();
   pinMode(BUTTON, INPUT);
   interface->waitStartSignal();
-  interface->menuPrompt(); // printa o menu de opcoes no terminal bluetooth
+  interface->menuPrompt(pid, motors,&currentState); // printa o menu de opcoes no terminal bluetooth
   //pinMode(LED, OUTPUT);
 
   pid->updateConstants(7,0,100); // dando um valor inicial
@@ -39,8 +39,8 @@ void loop() {
 
   //bloco para o comando bluetooth
   if (interface->SerialBT.available()){ // verifica se recebemos algo por bluetooth
-    interface->menuActions(pid, motors,sensores,&currentState);
-    interface->menuPrompt(); // reprinta as opcoes de menu
+    interface->menuActions(pid, motors,&currentState);
+    interface->menuPrompt(pid, motors,&currentState); // reprinta as opcoes de menu
   }
   
   //bloco para calibrar sensores

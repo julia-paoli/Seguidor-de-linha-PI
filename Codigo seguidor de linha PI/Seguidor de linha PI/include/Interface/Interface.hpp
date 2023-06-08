@@ -9,16 +9,17 @@
  * 
  */
 enum menuOptions{
-    stdSpeed,
+    turnOn,
+    turnOff,
     calibrate,
+    stdSpeed,
     kp,
     ki,
-    kd,
-    turnOn,
-    turnOff
+    kd 
 };
 
-enum states{running, calibrating, stopped};
+enum states{running, calibrating, stopped, amount}; 
+String statesStrings[states::amount] = {"correndo","calibrando","parado"};
 
 class Interface{
     public:
@@ -26,8 +27,8 @@ class Interface{
         BluetoothSerial SerialBT;
         String read();
 
-        void menuPrompt();
-        void menuActions(PID* pid, Motors* motors, Sensors* sensors,states*);
+        void menuPrompt(PID* pid, Motors* motors, states* state);
+        void menuActions(PID* pid, Motors* motors,states*);
         void ChangeStdSpeed(Motors*);
         void ChangePIDconstants(menuOptions, PID*);
         void ChangeState(states* state, states newstate);
@@ -129,20 +130,21 @@ void Interface::ChangeState(states* state, states newstate){
  * @brief Mostra as opcoes para o usuario e chama as funcoes adequadas para alteracao das variaveis
  * 
  */
-void Interface::menuPrompt(){
+void Interface::menuPrompt(PID* pid, Motors* motors, states* state){
     this->SerialBT.println("");
     this->SerialBT.println("--> Digite a opcao desejada ");
     this->SerialBT.println("");
-    this->SerialBT.println("--> 1 Alterar a velocidade linear ");
-    this->SerialBT.println("--> 2 Colocar em modo de calibracao ");
-    this->SerialBT.println("--> 3 Alterar o Kp do PID ");
-    this->SerialBT.println("--> 4 Alterar o Ki do PID ");
-    this->SerialBT.println("--> 5 Alterar o Kd do PID ");
-    this->SerialBT.println("--> 6 Iniciar corrida");
-    this->SerialBT.println("--> 7 Parar");
+    this->SerialBT.println("--> 0 Entrar em modo running");
+    this->SerialBT.println("--> 1 Entrar em modo parado");
+    this->SerialBT.println("--> 2 Entrar em modo de calibracao" );
+    this->SerialBT.println("--> 3 Alterar a velocidade linear (" + String(motors->getStdSpeed(),1) + ") " );
+    this->SerialBT.println("--> 4 Alterar o Kp (" + String(pid->getKp(),1) + ") do PID " );
+    this->SerialBT.println("--> 5 Alterar o Ki (" + String(pid->getKi(),1) + ") do PID " );
+    this->SerialBT.println("--> 6 Alterar o Kd (" + String(pid->getKd(),1) + ") do PID " );
+    this->SerialBT.println("--> Estado atual : " + statesStrings[*state]);
 }
 
-void Interface::menuActions(PID* pid, Motors* motors, Sensors* sensors, states* state){
+void Interface::menuActions(PID* pid, Motors* motors, states* state){
     String option = this->read();
 
     switch (option.toInt())
