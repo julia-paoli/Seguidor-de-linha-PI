@@ -84,16 +84,15 @@ class Sensors {
 
             readSensors();
             for (int i = 0; i < SENSORS_NUMBER ; i++) {
-                readings = map(_readings[i], _minCalibrated[i], _maxCalibrated[i], 0,
-                            MAX_ESP);
+                readings = map(_readings[i], _minCalibrated[i], _maxCalibrated[i], 0, MAX_ESP);
                 readings = constrain(readings, 0, MAX_ESP);
 
                  //prints de debugg
-                Serial.print("D" + String(i+1) + ": " + String(readings) + "   ");
+                // Serial.print("D" + String(i+1) + ": " + String(readings) + "   ");
                 
                 _readings[i] = readings;
             }
-            Serial.println("");
+            // Serial.println("");
         
         }
 
@@ -103,53 +102,49 @@ class Sensors {
         * informações dos sensores frontais
         */
         double calculatePosition() {
-        // Sensores fontrais = sensores totais - sensores laterais
-        float        result     = 100;
-        static float lastResult = 0;
+            // Sensores fontrais = sensores totais - sensores laterais
+            float        result     = 100;
+            static float lastResult = 0;
 
-        // Leitura dos sensores de linha na ordem da esquerda para direita
-        int readingsInOrder[SENSORS_NUMBER ] = {_readings[LEFT_SENSOR4],
-                                        _readings[LEFT_SENSOR3],
-                                        _readings[LEFT_SENSOR2],
-                                        _readings[LEFT_SENSOR1],
-                                        _readings[RIGHT_SENSOR1],
-                                        _readings[RIGHT_SENSOR2],
-                                        _readings[RIGHT_SENSOR3],
-                                        _readings[RIGHT_SENSOR4]};
+            int   index      = 0;
+            int casesNumber = 21;
+            // Combinações possíveis de ativação dos sensores, outras possibilidades não são possíveis para a lógica.
+            int   cases[casesNumber]  = {1,   12, 123, 2,   23, 234, 3,   34, 345, 4, 45, 456, 5,  56,  567, 6,  67,  678, 7,  78,  8};
+            // Pesos associados a cada combinação de sensores
+            // Para mais de um sensor sendo lido, é feita a média de pesos entre os sensores
+            float weight[casesNumber] = {-4, -3.5, -3, -3, -2.5, -2, -2, -1.5, -1, -1, 0, 1,  1,  1.5, 2,  2, 2.5, 3, 3, 3.5, 4};
 
-        int   index      = 0;
-        int casesNumber = 21;
-        // Combinações possíveis de ativação dos sensores, outras possibilidades não são possíveis para a lógica.
-        int   cases[casesNumber]  = {1,   12, 123, 2,   23, 234, 3,   34, 345, 4, 45, 456, 5,  56,  567, 6,  67,  678, 7,  78,  8};
-        // Pesos associados a cada combinação de sensores
-        // Para mais de um sensor sendo lido, é feita a média de pesos entre os sensores
-        float weight[casesNumber] = {-4, -3.5, -3, -3, -2.5, -2, -2, -1.5, -1, -1, 0, 1,  1,  1.5, 2,  2, 2.5, 3, 3, 3.5, 4};
-
-        for (int i = 1; i <= SENSORS_NUMBER; i++) {
-            if (readingsInOrder[i - 1] >= LINE_VALUE) {
-                index *= 10;
-                index += i;
+            for (int i = 1; i <= SENSORS_NUMBER; i++) {
+                if (_readings[i - 1] >= LINE_VALUE) {
+                    index *= 10;
+                    index += i;
+                }
             }
-        }
 
-        for (int i = 0; i < casesNumber; i++) {
-            if (cases[i] == index) {
-                result = weight[i];
+            for (int i = 0; i < casesNumber; i++) {
+                if (cases[i] == index) {
+                    result = weight[i];
+                }
             }
-        }
-        if (result == 100) {
-            result = lastResult;
+            if (result == 100) {
+                result = lastResult;
+            }
+
+            lastResult = result;
+
+            return result;
         }
 
-        lastResult = result;
-
-        return result;
+        int *getCalibratedValues(){
+            readCalibrated();
+            return _readings;
         }
 
    private:
 
         // Vetores onde são guardadas as leituras dos sensores
         int _readings[SENSORS_NUMBER];
+        int readingsInOrder[SENSORS_NUMBER];
         int _maxCalibrated[SENSORS_NUMBER];
         int _minCalibrated[SENSORS_NUMBER];
        

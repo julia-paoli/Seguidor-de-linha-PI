@@ -2,6 +2,7 @@
 #include "Motores/motores.hpp"
 #include "PID/PID.hpp"
 #include "Sensores/sensores.hpp"
+#include "Constantes/constants.hpp"
 
 
 /**
@@ -15,7 +16,9 @@ enum menuOptions{
     stdSpeed,
     kp,
     ki,
-    kd 
+    kd,
+    debugMotors,
+    debugSensors
 };
 
 enum states{running, calibrating, stopped, amount}; 
@@ -28,10 +31,12 @@ class Interface{
         String read();
 
         void menuPrompt(PID* pid, Motors* motors, states* state);
-        void menuActions(PID* pid, Motors* motors,states*);
+        void menuActions(PID* pid, Sensors *sensores, Motors* motors,states*);
         void ChangeStdSpeed(Motors*);
         void ChangePIDconstants(menuOptions, PID*);
         void ChangeState(states* state, states newstate);
+        void DebugMotors(Motors *motors);
+        void DebugSensors(Sensors *sensors);
         void waitStartSignal();
     private:
 };
@@ -114,16 +119,31 @@ void Interface::ChangePIDconstants(menuOptions type, PID* pid){
     this->SerialBT.println("");
 }
 
-void Interface::ChangeState(states* state, states newstate){
-    this->SerialBT.println("");
-    this->SerialBT.println("--> Digite 1 para confirmar sua escolha: ");
-    this->SerialBT.println("--> Caso ao contrario, aperte qualquer outra tecla: ");
-    String confirmation = this->read(); // lendo confirmacao
-    this->SerialBT.println("");
+void Interface::DebugMotors(Motors *motors){
+    motors->setPWMs(30, 30);
+    delay(2000);
+    motors->setPWMs(-30, 30);
+    delay(2000);
+    motors->setPWMs(30, -30);
+    delay(2000);
+    motors->setPWMs(0, 0);
+}
 
-   if(confirmation.toInt()== 1){
+void Interface::DebugSensors(Sensors *sensors){
+    int *values;
+    unsigned long lastTime = millis(); 
+    do{
+        String msg = "";
+        this->SerialBT.print(String(millis()) + " - ");
+        values = sensors->getCalibratedValues();
+        for (int i=0; i < SENSORS_NUMBER; i++)
+            msg += String(values[i]) + " ";
+        this->SerialBT.println(msg);
+    } while (millis() - lastTime < 10000);
+}
+
+void Interface::ChangeState(states* state, states newstate){
     *state = newstate;
-   }
 }
 
 /**
@@ -131,53 +151,47 @@ void Interface::ChangeState(states* state, states newstate){
  * 
  */
 void Interface::menuPrompt(PID* pid, Motors* motors, states* state){
-    this->SerialBT.println("");
-    this->SerialBT.println("--> Digite a opcao desejada ");
-    this->SerialBT.println("");
-    this->SerialBT.println("--> 0 Entrar em modo running");
-    this->SerialBT.println("--> 1 Entrar em modo parado");
-    this->SerialBT.println("--> 2 Entrar em modo de calibracao" );
-    this->SerialBT.println("--> 3 Alterar a velocidade linear (" + String(motors->getStdSpeed(),1) + ") " );
-    this->SerialBT.println("--> 4 Alterar o Kp (" + String(pid->getKp(),1) + ") do PID " );
-    this->SerialBT.println("--> 5 Alterar o Ki (" + String(pid->getKi(),1) + ") do PID " );
-    this->SerialBT.println("--> 6 Alterar o Kd (" + String(pid->getKd(),1) + ") do PID " );
+    this->SerialBT.println("=======================================");
+    this->SerialBT.println("=========== MENU DE OPCOES ============");
+    this->SerialBT.println("=======================================");
+    this->SerialBT.println("0) Entrar em modo running");
+    this->SerialBT.println("1) Entrar em modo parado");
+    this->SerialBT.println("2) Entrar em modo de calibracao" );
+    this->SerialBT.println("3) Alterar a velocidade linear (" + String(motors->getStdSpeed()) + ") " );
+    this->SerialBT.println("4) Alterar o Kp (" + String(pid->getKp(),1) + ") do PID " );
+    this->SerialBT.println("5) Alterar o Ki (" + String(pid->getKi(),1) + ") do PID " );
+    this->SerialBT.println("6) Alterar o Kd (" + String(pid->getKd(),1) + ") do PID " );
+    this->SerialBT.println("7) Testar motores");
+    this->SerialBT.println("8) Testar sensores" );
     this->SerialBT.println("--> Estado atual : " + statesStrings[*state]);
+    this->SerialBT.println("");
+    this->SerialBT.print("--> Digite a opcao desejada: ");
 }
 
-void Interface::menuActions(PID* pid, Motors* motors, states* state){
+void Interface::menuActions(PID* pid, Sensors *sensores, Motors* motors, states* state){
     String option = this->read();
+    long intOption = option.toInt();
 
-    switch (option.toInt())
-    {
-        case menuOptions::stdSpeed : {
-            this->ChangeStdSpeed(motors);
-            break;
-        }
-        case menuOptions::calibrate:{
-             this->ChangeState(state, states::calibrating);
-            break;
-        }
-        case menuOptions::kp:{
-            this->ChangePIDconstants(menuOptions::kp,pid);
-            break;
-        }
-        case menuOptions::ki:{
-            this->ChangePIDconstants(menuOptions::kp,pid);
-            break;
-        }
-        case menuOptions::kd:{
-            this->ChangePIDconstants(menuOptions::kp,pid);
-            break;
-        }
-        case menuOptions::turnOn:{
-            this->ChangeState(state, states::running);
-        }
-         case menuOptions::turnOff:{
-              this->ChangeState(state, states::stopped);
-        }
-        default:
-            this->SerialBT.println("--> Selecao invalida, tente de novo ");    
-    }
+    if (intOption == menuOptions::turnOn)
+        this->ChangeState(state, states::running);
+    else if (intOption == menuOptions::turnOff)
+        this->ChangeState(state, states::stopped);
+    else if (intOption == menuOptions::calibrate)
+        this->ChangeState(state, states::calibrating);
+    else if (intOption == menuOptions::stdSpeed)
+        this->ChangeStdSpeed(motors);
+    else if (intOption == menuOptions::kp)
+        this->ChangePIDconstants(menuOptions::kp,pid);
+    else if (intOption == menuOptions::ki)
+        this->ChangePIDconstants(menuOptions::ki,pid);
+    else if (intOption == menuOptions::kd)
+        this->ChangePIDconstants(menuOptions::kd,pid);
+    else if (intOption == menuOptions::debugMotors)
+        this->DebugMotors(motors);
+    else if (intOption == menuOptions::debugSensors)
+        this->DebugSensors(sensores);
+    else
+        this->SerialBT.println("--> Selecao invalida, tente de novo ");    
+
       this->SerialBT.println("");
-
 }
