@@ -55,7 +55,6 @@ void loop() {
     //digitalWrite(LED,LOW);
     currentState = states::stopped;
   }
-
   if(currentState = states::running){
     //prints de debugg
     //Serial.println("RODANDO  ");
@@ -81,6 +80,7 @@ void loop() {
     else{
       currentState = states::stopped;
     }
+    delay(300);
   }
 
 }
