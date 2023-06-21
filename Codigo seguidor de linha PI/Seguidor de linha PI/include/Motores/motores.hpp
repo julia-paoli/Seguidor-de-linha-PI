@@ -80,6 +80,10 @@ class Motors{
             int difPos;
             int difNeg;
 
+            // Fisicamente o motor esquerdo esta invertido
+            // left = -left;
+            right = -right;
+
             if (max(left, right) > 255) {
                 // Se um dos valores passar de 255, precisamos retirar o "excedente" de ambos
                 // isso é necessário para preservar a diferença entre eles e, consequentemente, preservar a velocidade angular desejada

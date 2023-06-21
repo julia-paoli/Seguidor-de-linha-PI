@@ -120,12 +120,13 @@ void Interface::ChangePIDconstants(menuOptions type, PID* pid){
 }
 
 void Interface::DebugMotors(Motors *motors){
-    motors->setPWMs(30, 30);
-    delay(2000);
-    motors->setPWMs(-30, 30);
-    delay(2000);
-    motors->setPWMs(30, -30);
-    delay(2000);
+    int speed = 50;
+    motors->setPWMs(speed, speed);
+    delay(3000);
+    motors->setPWMs(-speed, speed);
+    delay(3000);
+    motors->setPWMs(speed, -speed);
+    delay(3000);
     motors->setPWMs(0, 0);
 }
 
