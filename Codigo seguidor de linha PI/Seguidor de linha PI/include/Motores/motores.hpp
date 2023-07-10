@@ -79,6 +79,7 @@ class Motors{
             // Vamos ver se os valores escolhidos estão dentro da resolução do ESP
             int difPos;
             int difNeg;
+            right = -right;
 
             // Fisicamente o motor esquerdo esta invertido
             // left = -left;
