@@ -8,6 +8,7 @@
 int PIDresult;
 double PIDerror;
 bool started = false;
+bool firstMenuprint = false;
 
 Sensors *sensores; 
 Motors *motors; 
@@ -44,6 +45,10 @@ void setup(){
 void loop() {
   if( currentMode == modes:: pidMode){
     Serial.println("PID");
+    if (firstMenuprint == false){ //vamos ver se ja printamos pela primeira vez
+        interface->menuPrompt(pid, motors,&currentState); // se nao printamos
+        firstMenuprint = true; //avisamos q ja printamos
+    }
     PIDfunc();
   }
   else if (currentMode == modes::RC){
@@ -52,7 +57,9 @@ void loop() {
   }
   else if (currentMode == modes::undefinedMode){
     Serial.println("undefined");
-    interface->menuInit(&currentMode);
+    motors->stopRobot(); //para
+    firstMenuprint = false; // preparo p se voltarmos p PID
+    interface->menuInit(&currentMode); //pegamos o prox mode
   }
 }
 
@@ -60,8 +67,8 @@ void PIDfunc(){
 
   //bloco para o comando bluetooth
   if (interface->SerialBT.available()){ // verifica se recebemos algo por bluetooth
-    interface->menuPrompt(pid, motors,&currentState); // reprinta as opcoes de menu
     interface->menuActions(pid, sensores, motors, &currentState, &currentMode);
+    interface->menuPrompt(pid, motors,&currentState); // reprinta as opcoes de menu
   }
   
   //bloco para calibrar sensores
