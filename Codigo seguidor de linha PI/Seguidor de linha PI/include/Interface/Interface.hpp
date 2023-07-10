@@ -4,6 +4,11 @@
 #include "Sensores/sensores.hpp"
 #include "Constantes/constants.hpp"
 
+enum initMenuOptions{
+    undefinedOp,
+    pidOp,
+    rcOp
+};
 
 /**
  * @brief opcoes do menu
@@ -18,10 +23,12 @@ enum menuOptions{
     ki,
     kd,
     debugMotors,
-    debugSensors
+    debugSensors,
+    exitPID
 };
 
 enum states{running, calibrating, stopped, amount}; 
+enum modes{undefinedMode,pidMode, RC, amountMode}; 
 String statesStrings[states::amount] = {"correndo","calibrando","parado"};
 
 class Interface{
@@ -30,11 +37,13 @@ class Interface{
         BluetoothSerial SerialBT;
         String read();
 
+        void menuInit(modes* modes);
         void menuPrompt(PID* pid, Motors* motors, states* state);
-        void menuActions(PID* pid, Sensors *sensores, Motors* motors,states*);
+        void menuActions(PID* pid, Sensors *sensores, Motors* motors,states*,modes*);
         void ChangeStdSpeed(Motors*);
         void ChangePIDconstants(menuOptions, PID*);
         void ChangeState(states* state, states newstate);
+        void ChangeMode(modes* mode, modes newMode);
         void DebugMotors(Motors *motors);
         void DebugSensors(Sensors *sensors);
         void waitStartSignal();
@@ -147,6 +156,22 @@ void Interface::ChangeState(states* state, states newstate){
     *state = newstate;
 }
 
+void Interface::ChangeMode(modes* mode, modes newMode){
+    *mode = newMode;
+}
+
+void Interface::menuInit(modes* mode){
+    String option = this->read();
+    long intOption = option.toInt();
+
+    if (intOption == initMenuOptions::pidOp)
+        this->ChangeMode(mode, modes::pidMode);
+    else if (intOption == initMenuOptions::rcOp)
+        this->ChangeMode(mode, modes::RC);
+    else
+        this->ChangeMode(mode, modes::undefinedMode);
+}
+
 /**
  * @brief Mostra as opcoes para o usuario e chama as funcoes adequadas para alteracao das variaveis
  * 
@@ -164,12 +189,13 @@ void Interface::menuPrompt(PID* pid, Motors* motors, states* state){
     this->SerialBT.println("6) Alterar o Kd (" + String(pid->getKd(),1) + ") do PID " );
     this->SerialBT.println("7) Testar motores");
     this->SerialBT.println("8) Testar sensores" );
+    this->SerialBT.println("9) Sair do modo PID" );
     this->SerialBT.println("--> Estado atual : " + statesStrings[*state]);
     this->SerialBT.println("");
     this->SerialBT.print("--> Digite a opcao desejada: ");
 }
 
-void Interface::menuActions(PID* pid, Sensors *sensores, Motors* motors, states* state){
+void Interface::menuActions(PID* pid, Sensors *sensores, Motors* motors, states* state,modes* mode){
     String option = this->read();
     long intOption = option.toInt();
 
@@ -191,6 +217,8 @@ void Interface::menuActions(PID* pid, Sensors *sensores, Motors* motors, states*
         this->DebugMotors(motors);
     else if (intOption == menuOptions::debugSensors)
         this->DebugSensors(sensores);
+    else if (intOption == menuOptions::exitPID)
+        *mode = modes::undefinedMode;
     else
         this->SerialBT.println("--> Selecao invalida, tente de novo ");    
 

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <Arduino.h>
 #include <interface/Interface.hpp>
 #include <Motores/motores.hpp>
@@ -12,7 +13,12 @@ Sensors *sensores;
 Motors *motors; 
 PID *pid;
 Interface *interface;
-states currentState = stopped;
+states currentState = states::stopped;
+modes currentMode = modes::undefinedMode;
+
+void PIDfunc();
+void getMovement(String command, int *linearSpd, int *angularSpd, int *enable);
+void RCfunc();
 
 
 void setup(){
@@ -28,50 +34,54 @@ void setup(){
   sensores->initPins();
   pinMode(BUTTON, INPUT);
   interface->waitStartSignal();
-  //pinMode(LED, OUTPUT);
 
-  pid->updateConstants(7,0,100); // dando um valor inicial
-  interface->menuPrompt(pid, motors, &currentState); // printa o menu de opcoes no terminal bluetooth
+  pid->updateConstants(45,0,950); // dando um valor inicial
+  // interface->menuPrompt(pid, motors, &currentState); // printa o menu de opcoes no terminal bluetooth
+  interface->SerialBT.println("Conectado!");
 }
 
 
 void loop() {
+  if( currentMode == modes:: pidMode){
+    Serial.println("PID");
+    PIDfunc();
+  }
+  else if (currentMode == modes::RC){
+    // Serial.println("RC");
+    RCfunc();
+  }
+  else if (currentMode == modes::undefinedMode){
+    Serial.println("undefined");
+    interface->menuInit(&currentMode);
+  }
+}
+
+void PIDfunc(){
 
   //bloco para o comando bluetooth
   if (interface->SerialBT.available()){ // verifica se recebemos algo por bluetooth
-    interface->menuActions(pid, sensores, motors, &currentState);
     interface->menuPrompt(pid, motors,&currentState); // reprinta as opcoes de menu
+    interface->menuActions(pid, sensores, motors, &currentState, &currentMode);
   }
   
   //bloco para calibrar sensores
   if (currentState == states::calibrating){
     interface->SerialBT.println("\n\n-->Calibrando Array de Sensores");
-    //digitalWrite(LED,HIGH);
-
-    //prints de debugg
-    //Serial.println("CALIBRANDO  ");
 
     sensores->resetCalibration();
     sensores->calibrateSensors();
-    //digitalWrite(LED,LOW);
     currentState = states::stopped;
 
     interface->SerialBT.println("\n\n-->Array de Sensores Calibrados!\n");
     interface->menuPrompt(pid, motors,&currentState); // reprinta as opcoes de menu
   }
   if(currentState == states::running){
-    //prints de debugg
-    //Serial.println("RODANDO  ");
-    //Serial.println(String(motors->getStdSpeed()) + "  |   " + String(pid.getKp()) + "  |   " + String(pid.getKi()) + "  |   " + String(pid.getKd()));
-   
     sensores->readCalibrated(); // le sensores levando em conta a calibracao
     PIDerror = sensores->calculatePosition(); // pegua erro em relacao a linha
     PIDresult = pid->calculate(PIDerror); // calcula o PID
     motors->moveRobot(PIDresult);
   } 
   else if (currentState == states::stopped){
-    //prints de debugg
-    //Serial.println("PARADO");
     motors->stopRobot();
   }
 
@@ -86,7 +96,38 @@ void loop() {
     }
     delay(300);
   }
-
 }
 
+void getMovement(String command, int *linearSpd, int *angularSpd, int *enable){
+  // Split the readString by a pre-defined delimiter in a simple way. '%'(percentage) is defined as the delimiter in this project.
+  int delimiter1 = command.indexOf(",");
+  int delimiter2 = command.indexOf(",", delimiter1 + 1);
 
+  // Define variables to be executed on the code later by collecting information from the readString as substrings.
+  String enableStr = command.substring(0, delimiter1);
+  String linearStr = command.substring(delimiter1 + 1, delimiter2);
+  String angularStr = command.substring(delimiter2 + 1, command.length());
+
+  *linearSpd = linearStr.toInt();
+  *angularSpd = angularStr.toInt();
+  *enable = enableStr.toInt();
+}
+
+void RCfunc(){
+  static String command;
+  static int linearSpd, angularSpd, enable;
+
+  if (interface->SerialBT.available()){ // verifica se recebemos algo por bluetooth
+    command = interface->read();
+    getMovement(command, &linearSpd, &angularSpd, &enable);
+    Serial.println("RC | Linear Speed: " + String(linearSpd) + " | Angular Speed: " + String(angularSpd) + " | enable: " + String(enable));
+
+    if (enable == 0){ 
+      currentMode = modes::undefinedMode;
+      return;
+    }
+   
+   motors->setStdSpeed(linearSpd);
+   motors->moveRobot(angularSpd);
+  }
+}

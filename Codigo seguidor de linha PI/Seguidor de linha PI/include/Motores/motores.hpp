@@ -31,7 +31,7 @@ const int resolution = 8;
 
 class Motors{
     private:
-        int _stdSpeed = 0;
+        int _stdSpeed = 70;
 
     public:
 
