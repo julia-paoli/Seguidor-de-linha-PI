@@ -52,7 +52,6 @@ void loop() {
     PIDfunc();
   }
   else if (currentMode == modes::RC){
-    // Serial.println("RC");
     RCfunc();
   }
   else if (currentMode == modes::undefinedMode){
@@ -127,14 +126,17 @@ void RCfunc(){
   if (interface->SerialBT.available()){ // verifica se recebemos algo por bluetooth
     command = interface->read();
     getMovement(command, &linearSpd, &angularSpd, &enable);
-    Serial.println("RC | Linear Speed: " + String(linearSpd) + " | Angular Speed: " + String(angularSpd) + " | enable: " + String(enable));
+    Serial.println("RC | enable: " + String(enable) + " | Linear Speed: " + String(linearSpd) + " | Angular Speed: " + String(angularSpd));
 
     if (enable == 0){ 
       currentMode = modes::undefinedMode;
       return;
     }
    
-   motors->setStdSpeed(linearSpd);
-   motors->moveRobot(angularSpd);
+    if (abs(linearSpd) <= 255)
+      motors->setStdSpeed(linearSpd);
+
+    if (abs(angularSpd) <= 255)
+      motors->moveRobot(angularSpd);
   }
 }

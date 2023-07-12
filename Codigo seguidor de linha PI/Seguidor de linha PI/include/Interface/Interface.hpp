@@ -66,6 +66,7 @@ Interface::Interface() {
 String Interface::read() {
     while (SerialBT.available() == 0);          // Aguarda a receber os dados
     String readStr = SerialBT.readString();
+    // Serial.println("READ: [" + readStr + "]");
     readStr.trim();                            // arruma a string
     return readStr;
 }
@@ -163,6 +164,8 @@ void Interface::ChangeMode(modes* mode, modes newMode){
 void Interface::menuInit(modes* mode){
     String option = this->read();
     long intOption = option.toInt();
+
+    Serial.println("MenuInt: " + String(intOption));
 
     if (intOption == initMenuOptions::pidOp)
         this->ChangeMode(mode, modes::pidMode);

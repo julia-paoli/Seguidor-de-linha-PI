@@ -83,7 +83,6 @@ class Motors{
 
             // Fisicamente o motor esquerdo esta invertido
             // left = -left;
-            right = -right;
 
             if (max(left, right) > 255) {
                 // Se um dos valores passar de 255, precisamos retirar o "excedente" de ambos
